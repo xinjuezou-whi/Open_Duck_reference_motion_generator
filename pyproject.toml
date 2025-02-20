@@ -1,0 +1,9 @@
+[project]
+name = "open_duck_reference_motion_generator"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = "==3.10.*"
+dependencies = [
+"placo==0.6.3"
+]
