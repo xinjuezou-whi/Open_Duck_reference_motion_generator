@@ -3,7 +3,7 @@
 
 # Open Duck Reference Motion Generator
 
-Open Duck project's reference motion generator for imitation learning. 
+Open Duck project's reference motion generator for imitation learning, based on [Placo](https://github.com/Rhoban/placo).
 
 
 ## Installation 
@@ -47,3 +47,5 @@ uv run open_duck_reference_motion_generator/gait_playground.py --duck ["go_bdx",
 - Validate that we can train policies with these motions (might have broken something during the port...)
 - Fix small bugs in gait_playground (refreshing, changing robots ...)
 - Nicer visualization ? Directly visualize using meshcat maybe. 
+- A document to specify the reference motion format, if someone wants to convert some mocap data to use for the imitation reward ?
+- The repo duck themed, but it could be a generic motion generator based on placo for biped robots (will add sigmaban at some point)
