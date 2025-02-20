@@ -49,3 +49,4 @@ uv run open_duck_reference_motion_generator/gait_playground.py --duck ["go_bdx",
 - Nicer visualization ? Directly visualize using meshcat maybe. 
 - A document to specify the reference motion format, if someone wants to convert some mocap data to use for the imitation reward ?
 - The repo duck themed, but it could be a generic motion generator based on placo for biped robots (will add sigmaban at some point)
+  - Sub TODO : explain how to add a new robot
