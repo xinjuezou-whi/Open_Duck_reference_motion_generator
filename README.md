@@ -44,3 +44,6 @@ uv run open_duck_reference_motion_generator/gait_playground.py --duck ["go_bdx",
 ## TODO
 
 - The robots descriptions should be in a separate repository and imported as a submodule. This would help having duplicates of the same files, or with different versions etc.
+- Validate that we can train policies with these motions (might have broken something during the port...)
+- Fix small bugs in gait_playground (refreshing, changing robots ...)
+- Nicer visualization ? Directly visualize using meshcat maybe. 
