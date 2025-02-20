@@ -5,6 +5,7 @@
 
 Open Duck project's reference motion generator for imitation learning, based on [Placo](https://github.com/Rhoban/placo).
 
+The reference motions are used in two RL works, one using mujoco playground [here](https://github.com/SteveNguyen/openduckminiv2_playground) and another using Isaac Gym [here](https://github.com/rimim/AWD)
 
 ## Installation 
 
