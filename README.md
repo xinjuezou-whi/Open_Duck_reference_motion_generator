@@ -1,3 +1,6 @@
+![banner](https://github.com/user-attachments/assets/f445e373-74fc-413b-aa73-0f17c76b1171)
+
+
 # Open Duck Reference Motion Generator
 
 Open Duck project's reference motion generator for imitation learning. 
