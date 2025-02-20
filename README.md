@@ -26,10 +26,18 @@ Args :
 - `--num` generates <num> random motions
 - `--output_dir` self explanatory
 
-### Replay
+### Replay
 
 ```bash
 uv run scripts/replay_motion.py -f recordings/<file>.json
 ```
 
+### Playground 
+
+```bash
+uv run open_duck_reference_motion_generator/gait_playground.py --duck ["go_bdx", "open_duck_mini", "open_duck_mini_v2"]
+```
+
 ## TODO
+
+- The robots descriptions should be in a separate repository and imported as a submodule. This would help having duplicates of the same files, or with different versions etc.
