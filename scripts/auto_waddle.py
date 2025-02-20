@@ -10,6 +10,7 @@ import numpy as np
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 
 
+
 def run_command_with_logging(cmd_log_tuple):
     cmd, log_file = cmd_log_tuple
     if log_file is None:
@@ -30,7 +31,7 @@ def numeric_prefix_sort_key(item):
     return (float("inf"), preset_name)
 
 
-def main(bdx_type, jobs, n, do_plot=False, verbose=False, sweep=False):
+def main(args):
     """
     Generates random preset data, creates gait motions, filters recordings,
     and (optionally) plots anim/sim if --plot is given.
@@ -42,7 +43,7 @@ def main(bdx_type, jobs, n, do_plot=False, verbose=False, sweep=False):
     # 1. Load parameters from auto_gait.json
     # ---------------------------------------------------------------
     # This JSON should contain keys like: slow, medium, fast, dx_max, dy_max, dtheta_max
-    props_path = f"../awd/data/assets/{bdx_type}/auto_gait.json"
+    props_path = f"{SCRIPT_PATH}/../open_duck_reference_motion_generator/robots/{args.duck}/auto_gait.json"
     if not os.path.isfile(props_path):
         raise FileNotFoundError(f"Could not find props file at: {props_path}")
 
@@ -84,12 +85,11 @@ def main(bdx_type, jobs, n, do_plot=False, verbose=False, sweep=False):
     # ---------------------------------------------------------------
     # 2. Paths and directories
     # ---------------------------------------------------------------
-    presets_dir = f"../awd/data/assets/{bdx_type}/placo_presets"
+    presets_dir = f"{SCRIPT_PATH}/../open_duck_reference_motion_generator/robots/{args.duck}/placo_presets"
     tmp_dir = os.path.join(presets_dir, "tmp")
     os.makedirs(tmp_dir, exist_ok=True)
 
-    default_output_dir = os.path.join(SCRIPT_PATH, "../recordings")
-    log_dir = os.path.join(default_output_dir, "log")
+    log_dir = os.path.join(args.output_dir, "log")
     os.makedirs(log_dir, exist_ok=True)
 
     # ---------------------------------------------------------------
@@ -98,13 +98,13 @@ def main(bdx_type, jobs, n, do_plot=False, verbose=False, sweep=False):
     # ---------------------------------------------------------------
     preset_speeds = ["medium", "fast"]
 
-    if sweep:
+    if args.sweep:
         dxs = np.arange(min_sweep_x, max_sweep_x, sweep_xy_granularity)
         dys = np.arange(min_sweep_y, max_sweep_y, sweep_xy_granularity)
         dthetas = np.arange(min_sweep_theta, max_sweep_theta, sweep_theta_granularity)
         all_n = len(dxs) * len(dys) * len(dthetas)
     else:
-        all_n = n
+        all_n = args.num
 
     commands = []
     for i in range(all_n):
@@ -118,7 +118,7 @@ def main(bdx_type, jobs, n, do_plot=False, verbose=False, sweep=False):
         with open(preset_file, "r") as file:
             data = json.load(file)
 
-        if sweep:
+        if args.sweep:
             dx_idx = i % len(dxs)
             dy_idx = (i // len(dxs)) % len(dys)
             dtheta_idx = (i // (len(dxs) * len(dys))) % len(dthetas)
@@ -148,78 +148,89 @@ def main(bdx_type, jobs, n, do_plot=False, verbose=False, sweep=False):
         # Call gait_generator (no bdx-specific arguments, references removed)
         cmd = [
             "python",
-            "gait_generator.py",
-            "--bdx",
-            bdx_type,
+            f"{SCRIPT_PATH}/../open_duck_reference_motion_generator/gait_generator.py",
+            "--duck",
+            args.duck,
             "--preset",
             tmp_preset,
             "--name",
             str(i),
+            "--output_dir",
+            args.output_dir,
         ]
-        log_file = None if verbose else os.path.join(log_dir, f"{i}.log")
+        log_file = None if args.verbose else os.path.join(log_dir, f"{i}.log")
         commands.append((cmd, log_file))
 
-    # ---------------------------------------------------------------
-    # 4. Generate gait motions for slow/medium/fast speeds
-    # ---------------------------------------------------------------
-    for gait_speed_key, gait_speed_val in gait_speeds.items():
-        for gait_motion in gait_motions:
-            # Base preset is e.g. "slow.json", "medium.json", or "fast.json"
-            base_preset_path = os.path.join(presets_dir, f"{gait_speed_key}.json")
-            if not os.path.isfile(base_preset_path):
-                print(f"Skipping: no preset file {base_preset_path}")
-                continue
+    # # ---------------------------------------------------------------
+    # # 4. Generate gait motions for slow/medium/fast speeds
+    # # ---------------------------------------------------------------
+    # for gait_speed_key, gait_speed_val in gait_speeds.items():
+    #     for gait_motion in gait_motions:
+    #         # Base preset is e.g. "slow.json", "medium.json", or "fast.json"
+    #         base_preset_path = os.path.join(presets_dir, f"{gait_speed_key}.json")
+    #         if not os.path.isfile(base_preset_path):
+    #             print(f"Skipping: no preset file {base_preset_path}")
+    #             continue
 
-            with open(base_preset_path, "r") as file:
-                data = json.load(file)
+    #         with open(base_preset_path, "r") as file:
+    #             data = json.load(file)
 
-            # Modify dx/dy/dtheta depending on the motion
-            if gait_speed_key == "slow" and gait_motion == "standing":
-                # Do nothing for slow standing
-                pass
-            elif gait_motion == "forward":
-                data["dx"] = gait_speed_val
-            elif gait_motion == "backward":
-                data["dx"] = -gait_speed_val
-            elif gait_motion == "left":
-                data["dy"] = gait_speed_val
-            elif gait_motion == "right":
-                data["dy"] = -gait_speed_val
-            elif gait_motion == "dia_forward":
-                data["dx"] = gait_speed_val / 2
-                data["dy"] = gait_speed_val / 2
-            elif gait_motion == "dia_backward":
-                data["dx"] = -gait_speed_val / 2
-                data["dy"] = -gait_speed_val / 2
-            elif gait_motion == "ang_left":
-                data["dtheta"] = gait_speed_val
-            elif gait_motion == "ang_right":
-                data["dtheta"] = -gait_speed_val
+    #         # Modify dx/dy/dtheta depending on the motion
+    #         if gait_speed_key == "slow" and gait_motion == "standing":
+    #             # Do nothing for slow standing
+    #             pass
+    #         elif gait_motion == "forward":
+    #             data["dx"] = gait_speed_val
+    #         elif gait_motion == "backward":
+    #             data["dx"] = -gait_speed_val
+    #         elif gait_motion == "left":
+    #             data["dy"] = gait_speed_val
+    #         elif gait_motion == "right":
+    #             data["dy"] = -gait_speed_val
+    #         elif gait_motion == "dia_forward":
+    #             data["dx"] = gait_speed_val / 2
+    #             data["dy"] = gait_speed_val / 2
+    #         elif gait_motion == "dia_backward":
+    #             data["dx"] = -gait_speed_val / 2
+    #             data["dy"] = -gait_speed_val / 2
+    #         elif gait_motion == "ang_left":
+    #             data["dtheta"] = gait_speed_val
+    #         elif gait_motion == "ang_right":
+    #             data["dtheta"] = -gait_speed_val
 
-            # Save to a temporary preset
-            motion_name = f"{gait_motion}_{gait_speed_key}"
-            motion_preset_path = os.path.join(
-                tmp_dir, f"motion_preset_{motion_name}.json"
-            )
-            with open(motion_preset_path, "w") as out_file:
-                json.dump(data, out_file, indent=4)
+    #         # Save to a temporary preset
+    #         motion_name = f"{gait_motion}_{gait_speed_key}"
+    #         motion_preset_path = os.path.join(
+    #             tmp_dir, f"motion_preset_{motion_name}.json"
+    #         )
+    #         with open(motion_preset_path, "w") as out_file:
+    #             json.dump(data, out_file, indent=4)
 
-            # Run gait_generator
-            cmd = [
-                "python",
-                "gait_generator.py",
-                "--bdx",
-                bdx_type,
-                "--preset",
-                motion_preset_path,
-                "--name",
-                motion_name,
-            ]
-            log_file = None if verbose else os.path.join(log_dir, f"{motion_name}.log")
-            commands.append((cmd, log_file))
+    #         # Run gait_generator
+    #         cmd = [
+    #             "python",
+    #             f"{SCRIPT_PATH}/../open_duck_reference_motion_generator/gait_generator.py",
+    #             "--duck",
+    #             args.duck,
+    #             "--preset",
+    #             motion_preset_path,
+    #             "--name",
+    #             motion_name,
+    #             "--output_dir",
+    #             args.output_dir
+    #         ]
+    #         log_file = (
+    #             None if args.verbose else os.path.join(log_dir, f"{motion_name}.log")
+    #         )
+    #         commands.append((cmd, log_file))
 
-    if jobs > 1:
-        with ThreadPoolExecutor(max_workers=jobs) as executor:
+
+    # for command in commands:
+
+    #     print(command)
+    #     exit()
+    if args.jobs > 1:
+        with ThreadPoolExecutor(max_workers=args.jobs) as executor:
             executor.map(run_command_with_logging, commands)
     else:
         for cmd in commands:
@@ -230,10 +241,10 @@ def main(bdx_type, jobs, n, do_plot=False, verbose=False, sweep=False):
     # 5. Check the JSON outputs in ../recordings; remove if out of range
     # ---------------------------------------------------------------
     totals = []
-    if os.path.isdir(default_output_dir):
-        for filename in os.listdir(default_output_dir):
+    if os.path.isdir(args.output_dir):
+        for filename in os.listdir(args.output_dir):
             if filename.endswith(".json"):
-                file_path = os.path.join(default_output_dir, filename)
+                file_path = os.path.join(args.output_dir, filename)
                 with open(file_path, "r") as file:
                     data = json.load(file)
 
@@ -258,7 +269,7 @@ def main(bdx_type, jobs, n, do_plot=False, verbose=False, sweep=False):
                 else:
                     totals.append((total_speed, preset_name))
     else:
-        print(f"No directory found at {default_output_dir}; skipping file checks.")
+        print(f"No directory found at {args.output_dir}; skipping file checks.")
     totals = sorted(totals, key=numeric_prefix_sort_key)
     for speed, preset_name in totals:
         print(f"Preset: {preset_name}, Total Speed: {speed:.4f}")
@@ -266,7 +277,7 @@ def main(bdx_type, jobs, n, do_plot=False, verbose=False, sweep=False):
     # ---------------------------------------------------------------
     # 6. Optional plotting of anim.npy and sim.npy
     # ---------------------------------------------------------------
-    if do_plot:
+    if args.plot:
         import matplotlib.pyplot as plt
 
         anim_path = os.path.join(SCRIPT_PATH, "anim.npy")
@@ -297,9 +308,9 @@ def main(bdx_type, jobs, n, do_plot=False, verbose=False, sweep=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate AMP walking animations")
     parser.add_argument(
-        "--bdx",
-        help="Duck type go_bdx, mini_bdx, mini2_bdx, etc",
-        default="go_bdx",
+        "--duck",
+        choices=["go_bdx", "open_duck_mini", "open_duck_mini_v2"],
+        help="Duck type",
         required=True,
     )
     parser.add_argument(
@@ -330,6 +341,10 @@ if __name__ == "__main__":
         action="store_true",
         help="Optionally plot anim.npy and sim.npy if they exist.",
     )
-
+    parser.add_argument(
+        "--output_dir",
+        help="Output directory for the recordings",
+        default=f"{SCRIPT_PATH}/../recordings",
+    )
     args = parser.parse_args()
-    main(args.bdx, args.jobs, args.num, args.plot, args.verbose, args.sweep)
+    main(args)

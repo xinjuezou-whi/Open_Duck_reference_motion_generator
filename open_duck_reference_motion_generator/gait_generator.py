@@ -31,8 +31,9 @@ class RoundingFloat(float):
 parser = argparse.ArgumentParser()
 parser.add_argument("-n", "--name", type=str, required=True)
 script_path = os.path.dirname(os.path.abspath(__file__))
-default_output_dir = os.path.join(script_path, "../recordings")
-parser.add_argument("-o", "--output_dir", type=str, default=default_output_dir)
+parser.add_argument(
+    "-o", "--output_dir", type=str, default=os.path.join(script_path, "recordings")
+)
 parser.add_argument("--dx", type=float, default=0)
 parser.add_argument("--dy", type=float, default=0)
 parser.add_argument("--dtheta", type=float, default=0)
@@ -58,7 +59,10 @@ parser.add_argument("--walk_max_dx_backward", type=float, default=None)
 parser.add_argument("-l", "--length", type=int, default=10)
 parser.add_argument("-m", "--meshcat_viz", action="store_true", default=False)
 parser.add_argument(
-    "--bdx", help="Duck type go_bdx, mini_bdx, mini2_bdx, etc", required=True
+    "--duck",
+    choices=["go_bdx", "open_duck_mini", "open_duck_mini_v2"],
+    help="Duck type",
+    required=True,
 )
 parser.add_argument("--debug", action="store_true", default=False)
 parser.add_argument("--preset", type=str, default="")
@@ -78,15 +82,15 @@ parser.add_argument(
 args = parser.parse_args()
 args.hardware = True
 
-FPS = 50
+FPS = 50  # 50 for mujoco playground, 30 for AWD
 MESHCAT_FPS = 20
 DISPLAY_MESHCAT = args.meshcat_viz
 
-# For IsaacGymEnvs
+# For IsaacGymEnvs (OUTDATED)
 # [root position, root orientation, joint poses (e.g. rotations)]
 # [x, y, z, qw, qx, qy, qz, j1, j2, j3, j4, j5, j6, j7, j8, j9, j10, j11, j12, j13, j14]
 
-# For amp for hardware
+# For AWD and amp for hardware
 # [root position, root orientation, joint poses (e.g. rotations), target toe positions, linear velocity, angular velocity, joint velocities, target toe velocities]
 # [x, y, z, qw, qx, qy, qz, j1, j2, j3, j4, j5, j6, j7, j8, j9, j10, j11, j12, j13, j14, l_toe_x, l_toe_y, l_toe_z, r_toe_x, r_toe_y, r_toe_z, lin_vel_x, lin_vel_y, lin_vel_z, ang_vel_x, ang_vel_y, ang_vel_z, j1_vel, j2_vel, j3_vel, j4_vel, j5_vel, j6_vel, j7_vel, j8_vel, j9_vel, j10_vel, j11_vel, j12_vel, j13_vel, j14_vel, l_toe_vel_x, l_toe_vel_y, l_toe_vel_z, r_toe_vel_x, r_toe_vel_y, r_toe_vel_z]
 
@@ -110,9 +114,9 @@ if args.debug:
     episode["Debug_info"] = []
 
 script_path = os.path.dirname(os.path.abspath(__file__))
-robot = args.bdx
-robot_urdf = f"{args.bdx}.urdf"
-asset_path = os.path.join(script_path, f"../awd/data/assets/{args.bdx}")
+robot = args.duck
+robot_urdf = f"{robot}.urdf"
+asset_path = os.path.join(script_path, f"robots/{robot}")
 
 preset_filename = args.preset
 filename = os.path.join(asset_path, "placo_defaults.json")
@@ -448,9 +452,9 @@ print(f"computed xvel: {x_vel}, mean xvel: {mean_avg_x_lin_vel}")
 print(f"computed yvel: {y_vel}, mean yvel: {mean_avg_y_lin_vel}")
 print(f"computed thetavel: {theta_vel}, mean thetavel: {mean_yaw_vel}")
 
-# TODO convert name to velocities
-name = f"{args.name}_{x_vel}_{y_vel}_{theta_vel}"
-# name = f"{args.dx}_{args.dy}_{args.dtheta}"
+
+# name = f"{args.name}_{x_vel}_{y_vel}_{theta_vel}" # Do we need the id in the name ?
+name = f"{x_vel}_{y_vel}_{theta_vel}"
 file_name = name + str(".json")
 file_path = os.path.join(args.output_dir, file_name)
 os.makedirs(args.output_dir, exist_ok=True)
