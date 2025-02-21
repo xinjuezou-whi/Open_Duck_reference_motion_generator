@@ -453,8 +453,8 @@ print(f"computed yvel: {y_vel}, mean yvel: {mean_avg_y_lin_vel}")
 print(f"computed thetavel: {theta_vel}, mean thetavel: {mean_yaw_vel}")
 
 
-# name = f"{args.name}_{x_vel}_{y_vel}_{theta_vel}" # Do we need the id in the name ?
-name = f"{x_vel}_{y_vel}_{theta_vel}"
+name = f"{args.name}_{x_vel}_{y_vel}_{theta_vel}" # Do we need the id in the name ?
+# name = f"{x_vel}_{y_vel}_{theta_vel}"
 file_name = name + str(".json")
 file_path = os.path.join(args.output_dir, file_name)
 os.makedirs(args.output_dir, exist_ok=True)
