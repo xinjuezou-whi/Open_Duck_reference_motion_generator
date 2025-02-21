@@ -98,9 +98,9 @@ def main(args):
     preset_speeds = ["medium"]  # , "fast"]
 
     if args.sweep:
-        dxs = np.arange(min_sweep_x, max_sweep_x, sweep_xy_granularity)
-        dys = np.arange(min_sweep_y, max_sweep_y, sweep_xy_granularity)
-        dthetas = np.arange(min_sweep_theta, max_sweep_theta, sweep_theta_granularity)
+        dxs = np.arange(min_sweep_x, max_sweep_x + sweep_xy_granularity, sweep_xy_granularity)
+        dys = np.arange(min_sweep_y, max_sweep_y + sweep_xy_granularity, sweep_xy_granularity)
+        dthetas = np.arange(min_sweep_theta, max_sweep_theta + sweep_theta_granularity, sweep_theta_granularity)
         all_n = len(dxs) * len(dys) * len(dthetas)
     else:
         all_n = args.num
