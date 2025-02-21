@@ -10,7 +10,6 @@ import numpy as np
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 
 
-
 def run_command_with_logging(cmd_log_tuple):
     cmd, log_file = cmd_log_tuple
     if log_file is None:
@@ -96,7 +95,7 @@ def main(args):
     # 3. Generate random presets (n times)
     #    "medium" and "fast" as example base speeds
     # ---------------------------------------------------------------
-    preset_speeds = ["medium", "fast"]
+    preset_speeds = ["medium"]  # , "fast"]
 
     if args.sweep:
         dxs = np.arange(min_sweep_x, max_sweep_x, sweep_xy_granularity)
@@ -105,6 +104,12 @@ def main(args):
         all_n = len(dxs) * len(dys) * len(dthetas)
     else:
         all_n = args.num
+
+    nb_moves_message = f"=== GENERATING {all_n} MOVES ==="
+    spacer = "=" * len(nb_moves_message)
+    print(spacer)
+    print(nb_moves_message)
+    print(spacer)
 
     commands = []
     for i in range(all_n):
@@ -223,7 +228,6 @@ def main(args):
     #             None if args.verbose else os.path.join(log_dir, f"{motion_name}.log")
     #         )
     #         commands.append((cmd, log_file))
-
 
     # for command in commands:
 
