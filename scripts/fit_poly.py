@@ -1,41 +1,104 @@
-import matplotlib.pyplot as plt
-# fit a polynomial per dimension of the data
-
 import numpy as np
 import json
+import matplotlib.pyplot as plt
+from glob import glob
+import os
 
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.linear_model import LinearRegression
+# ====== Load Data ======
+all_files = glob("ref_motion/*.json")
 
-# load the data
-Y = np.array(json.load(open('ref_motion/0_-0.091_-0.121_-0.303.json'))["Frames"])
 
-# Example: Generating synthetic time series data (500 samples, 59 dimensions)
-np.random.seed(42)
-X = np.linspace(0, 1, 500).reshape(-1, 1)  # Time as the feature
-# Y = np.random.randn(500, 59)  # Simulated 59-dimensional data
+def fit_ref_motion(file):
+    data = json.load(open(file))
+    Y_all = np.array(data["Frames"])
+    period = data["Placo"]["period"]
+    fps = data["FPS"]
+    frame_offsets = data["Frame_offset"][0]
 
-degree = 3  # Change this for different polynomial degrees
+    nb_steps_in_period = int(period * fps)
+    _Y = Y_all[
+        int(nb_steps_in_period) : int(nb_steps_in_period) + int(nb_steps_in_period)
+    ]
+    joints_pos = _Y[:, frame_offsets["joints_pos"]: frame_offsets["left_toe_pos"]]
+    joints_vel = _Y[:, frame_offsets["joints_vel"]: frame_offsets["left_toe_vel"]]
+    foot_contacts = _Y[:, frame_offsets["foot_contacts"]: frame_offsets["foot_contacts"]+2]
+    base_linear_vel = _Y[:, frame_offsets["world_linear_vel"]: frame_offsets["world_angular_vel"]]
+    base_angular_vel = _Y[:, frame_offsets["world_angular_vel"]: frame_offsets["joints_vel"]]
 
-# Store models
-models = []
+    Y = np.concatenate([joints_pos, joints_vel, foot_contacts, base_linear_vel, base_angular_vel], axis=1)
 
-for dim in range(Y.shape[1]):  # Loop over each of the 59 dimensions
-    poly = PolynomialFeatures(degree)
-    X_poly = poly.fit_transform(X)  # Transform time feature
+    # Generate time feature
+    X = np.linspace(0, 1, Y.shape[0]).reshape(-1, 1)  # Time variable
 
-    model = LinearRegression()
-    model.fit(X_poly, Y[:, dim])  # Fit polynomial regression per dimension
-    
-    models.append((poly, model))  # Store transformer and model
+    # Polynomial degree
+    degree = 20
 
-# Example: Predicting for new time points
-X_new = np.linspace(0, 1, 500).reshape(-1, 1)
-X_new_poly = models[0][0].transform(X_new)  # Transform using the first stored poly
-Y_pred = np.array([model.predict(X_new_poly) for poly, model in models]).T  # Predict for each dimension
-for i in range(Y.shape[1]):
-    # Plot example for one dimension
-    plt.plot(X, Y[:, i], label="Original Data", alpha=0.5)
-    plt.plot(X_new, Y_pred[:, i], label="Polynomial Fit", color='red')
+    # Store coefficients
+    coefficients = {}
+
+    # ====== Fit Polynomial Regression per Dimension ======
+    for dim in range(Y.shape[1]):
+        X_poly = np.vander(X.flatten(), degree + 1, increasing=True)
+        coeffs, _, _, _ = np.linalg.lstsq(X_poly, Y[:, dim], rcond=None)
+        coefficients[f"dim_{dim}"] = coeffs.tolist()
+
+    return coefficients
+
+
+all_coefficients = {}
+for file in all_files:
+    name = os.path.basename(file).strip(".json")
+    tmp = name.split("_")
+    name = f"{tmp[1]}_{tmp[2]}_{tmp[3]}"
+
+    all_coefficients[name] = fit_ref_motion(file)
+
+
+# Save coefficients
+with open("polynomial_coefficients.json", "w") as f:
+    json.dump(all_coefficients, f, indent=4)
+exit()
+
+
+# ====== Function to Sample at a Given Time and Dimension ======
+def sample_polynomial(time: float, dimension: int, coefficients) -> float:
+    """
+    Evaluate the polynomial at a given time for a specific dimension.
+    """
+    if not (0 <= time <= 1):
+        raise ValueError("Time must be between 0 and 1.")
+
+    coeffs = coefficients.get(f"dim_{dimension}")
+    if coeffs is None:
+        raise ValueError(f"Dimension {dimension} not found in stored coefficients.")
+
+    return sum(c * (time**i) for i, c in enumerate(coeffs))
+
+
+# ====== Plot Fitting for Each Dimension ======
+for dimension in range(Y.shape[1]):
+    poly_samples = []
+    ref_samples = []
+    times = X.flatten()  # Use original time values for accurate mapping
+
+    for i, t in enumerate(times):
+        if i >= Y.shape[0]:
+            break  # Prevent out-of-bounds errors
+
+        poly_sample = sample_polynomial(t, dimension, coefficients)
+        ref = Y[i, dimension]
+
+        poly_samples.append(poly_sample)
+        ref_samples.append(ref)
+
+    # Plot original data vs. polynomial fit
+    plt.figure(figsize=(6, 4))
+    plt.plot(times[: len(ref_samples)], ref_samples, label="Original Data", alpha=0.5)
+    plt.plot(
+        times[: len(poly_samples)], poly_samples, label="Polynomial Fit", color="red"
+    )
     plt.legend()
+    plt.title(f"Dimension {dimension}")
+    plt.xlabel("Time")
+    plt.ylabel("Motion Value")
     plt.show()
