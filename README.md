@@ -30,6 +30,18 @@ Args :
 - `--num` generates <num> random motions
 - `--output_dir` self explanatory
 
+### Fit polynomials
+
+This will generate `polynomial_coefficients.json`
+```bash
+uv run scripts/fit_poly.py --ref_motion <>
+```
+
+To plot : 
+
+```bash
+uv run scripts/plot_poly_fit.py --coefficients polynomial_coefficients.json
+
 ### Replay
 
 ```bash
