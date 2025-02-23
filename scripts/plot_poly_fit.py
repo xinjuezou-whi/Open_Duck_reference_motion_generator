@@ -13,14 +13,14 @@ parser.add_argument(
     help="Path to polynomial coefficients file",
 )
 parser.add_argument("-n", type=int, default=1, help="number of periods to sample")
+parser.add_argument("--ref_motion", type=str, default="recordings")
 args = parser.parse_args()
 
 poly_data = json.load(open(args.coefficients))
 
-all_ref_files = glob("ref_motion/*.json")
+all_ref_files = glob(f"{args.ref_motion}/*.json")
 
 
-# ====== Function to Sample at a Given Time and Dimension ======
 def sample_polynomial(time: float, dimension: int, coefficients) -> float:
     """
     Evaluate the polynomial at a given time for a specific dimension.

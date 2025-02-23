@@ -9,7 +9,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--ref_motion", type=str, default="ref_motion")
 args = parser.parse_args()
 
-# ====== Load Data ======
 all_files = glob(f"{args.ref_motion}/*.json")
 
 
