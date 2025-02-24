@@ -10,7 +10,7 @@
   "replan_timesteps": 10,
   "walk_com_height": 0.205,
   "walk_foot_height": 0.04,
-  "walk_trunk_pitch": -3,
+  "walk_trunk_pitch": -4,
   "walk_foot_rise_ratio": 0.02,
   "single_support_duration": 0.18,
   "single_support_timesteps": 10,

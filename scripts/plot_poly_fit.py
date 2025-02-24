@@ -4,19 +4,22 @@ from glob import glob
 import json
 import matplotlib.pyplot as plt
 import argparse
+import pickle
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--coefficients",
     type=str,
-    default="polynomial_coefficients.json",
+    default="polynomial_coefficients.pkl",
     help="Path to polynomial coefficients file",
 )
 parser.add_argument("-n", type=int, default=1, help="number of periods to sample")
 parser.add_argument("--ref_motion", type=str, default="recordings")
 args = parser.parse_args()
 
-poly_data = json.load(open(args.coefficients))
+# poly_data = json.load(open(args.coefficients))
+poly_data = pickle.load(open(args.coefficients, "rb"))
+# pickle.load(args.coefficients)
 
 all_ref_files = glob(f"{args.ref_motion}/*.json")
 

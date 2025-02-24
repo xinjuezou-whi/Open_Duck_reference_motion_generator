@@ -32,7 +32,7 @@ Args :
 
 ### Fit polynomials
 
-This will generate `polynomial_coefficients.json`
+This will generate `polynomial_coefficients.pkl`
 ```bash
 uv run scripts/fit_poly.py --ref_motion <>
 ```
@@ -40,7 +40,7 @@ uv run scripts/fit_poly.py --ref_motion <>
 To plot : 
 
 ```bash
-uv run scripts/plot_poly_fit.py --coefficients polynomial_coefficients.json
+uv run scripts/plot_poly_fit.py --coefficients polynomial_coefficients.pkl
 
 ### Replay
 

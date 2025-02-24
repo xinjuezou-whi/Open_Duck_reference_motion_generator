@@ -1,9 +1,9 @@
 import numpy as np
 import json
-import matplotlib.pyplot as plt
 from glob import glob
 import os
 import argparse
+import pickle
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--ref_motion", type=str, default="ref_motion")
@@ -75,6 +75,4 @@ for file in all_files:
     all_coefficients[name] = fit_ref_motion(file)
 
 
-# Save coefficients
-with open("polynomial_coefficients.json", "w") as f:
-    json.dump(all_coefficients, f, indent=4)
+pickle.dump(all_coefficients, open("polynomial_coefficients.pkl", "wb"))
