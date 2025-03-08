@@ -41,6 +41,7 @@ To plot :
 
 ```bash
 uv run scripts/plot_poly_fit.py --coefficients polynomial_coefficients.pkl
+```
 
 ### Replay
 
