@@ -9,6 +9,7 @@ dependencies = [
     "framesviewer>=1.0.2",
     "matplotlib>=3.10.0",
     "placo==0.6.3",
+    "pygame>=2.6.1",
     "scikit-learn>=1.6.1",
     "scipy>=1.15.2",
 ]
