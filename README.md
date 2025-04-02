@@ -30,11 +30,19 @@ Args :
 - `--num` generates <num> random motions
 - `--output_dir` self explanatory
 
+For example, to generate all the reference motion for Open Duck Mini, run :
+
+```bash
+uv run scripts/auto_waddle.py -j8 --duck open_duck_mini_v2 --sweep 
+```
+
+This will write in a directory called `recordings/`
+
 ### Fit polynomials
 
 This will generate `polynomial_coefficients.pkl`
 ```bash
-uv run scripts/fit_poly.py --ref_motion <>
+uv run scripts/fit_poly.py --ref_motion recordings/
 ```
 
 To plot : 
