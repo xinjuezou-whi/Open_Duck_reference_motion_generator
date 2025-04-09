@@ -105,7 +105,7 @@ class PlacoWalkEngine:
         )
 
         self.supports = placo.FootstepsPlanner.make_supports(
-            self.footsteps, True, self.parameters.has_double_support(), True
+            self.footsteps, 0.0, True, self.parameters.has_double_support(), True
         )
 
         # Creating the pattern generator and making an initial plan
@@ -273,11 +273,23 @@ class PlacoWalkEngine:
 
             # Replanning footsteps from current trajectory
             self.supports = self.walk.replan_supports(
-                self.repetitive_footsteps_planner, self.trajectory, self.t
+                self.repetitive_footsteps_planner, self.trajectory, self.t, self.t # updated by Xinjue Zou
             )
 
-            # Replanning CoM trajectory, yielding a new trajectory we can switch to
-            self.trajectory = self.walk.replan(self.supports, self.trajectory, self.t)
+            try:
+                # Replanning CoM trajectory, yielding a new trajectory we can switch to
+                self.trajectory = self.walk.replan(self.supports, self.trajectory, self.t)
+            except Exception as e:
+                print(">>> Replan failed at time:", self.t)
+                print(">>> Supports object:", self.supports)
+                print(">>> Type of supports:", type(self.supports))
+                print(">>> dir(supports):", dir(self.supports))
+                print(">>> Supports content:")
+                for i, foot in enumerate(self.supports):
+                    print(f"  - Foot {i}: {foot}")
+                print(">>> Previous trajectory:", self.trajectory)
+                print(">>> ", e)
+                raise
 
         self.time_since_last_left_contact += dt
         self.time_since_last_right_contact += dt
