@@ -10,6 +10,7 @@ from os.path import join
 from threading import current_thread
 
 import numpy as np
+import pinocchio # updated by Xinjue Zou: import pinocchio early to avoid placo_utils import issues
 import placo
 from placo_utils.visualization import footsteps_viz, robot_frame_viz, robot_viz, get_viewer
 from scipy.spatial.transform import Rotation as R
